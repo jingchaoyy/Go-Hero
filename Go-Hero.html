@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>Go-Hero</title>
+
+	</head>
+	<body onload="main()" onkeydown="press(event)" style="background-image:url(http://people.emich.edu/jyang19/231/Project/mariowallpaper.png)">
+		<h1 style="text-align:center">Go!! HERO</h1>
+		<p style="text-align:center">Jingchao Yang</p><br>
+		<center>
+		<!--see http://www.w3schools.com/tags/tryit.asp?filename=tryhtml5_canvas-->
+		<canvas id="battlefield" style="border: 5px solid green;"></canvas>
+		<button onclick="rules()">Game Rules</button>
+		</center>
+
+		<script>
+
+			function rules() {
+    			var myWindow = window.open("", "", "width=400, height=400");
+    			myWindow.document.write("<p>Welecome to Go!! HERO</p>");
+				myWindow.document.write("<p>Press key 'W','S','A','D' or 'I','K','J','L' to move the hero.</p>");
+				myWindow.document.write("<p>You can see the blood of your hero and your score in the left bottom.</p>");
+				myWindow.document.write("<p>Kill all the monsters and collect all five coins, and you'll win the gave.</p>");
+				myWindow.document.write("<p>Try to go the hospital to refill your blood.</p>");
+				myWindow.document.write("<p>You will get the coin only when you kill the monster.</p>");
+				myWindow.document.write("<p>Be careful, some monsters cost more blood then the others.</p>");
+				myWindow.document.write("<p>Good Luck.</p>");
+			}
+
+			var hero = new Image();
+			var bstation = new Image();
+			var monster = new Image();
+			var badMonster = new Image();
+			var coinImage = new Image();
+			var coins = 0;
+			hero.src = "http://people.emich.edu/jyang19/231/Project/hero.png";
+			bstation.src = "http://people.emich.edu/jyang19/231/Project/hospital.png";
+			monster.src = "http://people.emich.edu/jyang19/231/Project/monster.png";
+			badMonster.src = "http://people.emich.edu/jyang19/231/Project/badmonster.png";
+			coinImage.src = "http://people.emich.edu/jyang19/231/Project/coin.png";
+			var canvas = document.getElementById("battlefield");
+			var	ctx = canvas.getContext("2d");
+			var	width = 500;
+			var	height = 500;
+			canvas.width = width;
+			canvas.height = height;
+			var	hero = {
+					image: hero,
+					height: 33,
+					width: 33,
+					x: Math.floor(Math.random() * 450),
+					y: Math.floor(Math.random() * 450),
+					blood: 100,
+					hurt: 1
+				};
+			var	bloodstation = {
+					image: bstation,
+					height: 33,
+					width: 33,
+					x: 230,
+					y: 230
+				};
+			var monsters = [6];  //http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_push
+			for (var i=0; i<3; i++){
+				monsters.push({
+					image: monster,
+					height: 33,
+					width: 33,
+					x: Math.floor(Math.random() * 450),
+					y: Math.floor(Math.random() * 450),
+					show: true,
+					hurt: 10,
+					blood: 1
+				});
+			}
+			for (var j=0; j<2; j++){
+				monsters.push({
+					image: badMonster,
+					height: 33,
+					width: 33,
+					x: Math.floor(Math.random() * 400),
+					y: Math.floor(Math.random() * 400),
+					show: true,
+					hurt: 25,
+					blood: 2
+				});
+			}
+			var coin = [];
+
+			function main() {
+				ctx.clearRect(0,0,width,height);
+				ctx.fillText("Blood: " + hero.blood,0,470);
+				ctx.fillText("Coins: " + coins,0,490);
+				//ctx.drawImage() see: http://www.w3schools.com/tags/tryit.asp?filename=tryhtml5_canvas_drawimage
+				ctx.drawImage(hero.image,hero.x,hero.y);
+				ctx.drawImage(bloodstation.image, bloodstation.x,bloodstation.y);
+				var refill = overlap(hero, bloodstation);
+				if(refill === true) {
+						hero.blood = 100;
+				}
+				for (var i = 0; i <= 5; i++) {
+					if(monsters[i].show)
+						ctx.drawImage(monsters[i].image, monsters[i].x, monsters[i].y);
+					coin.push ({
+						image: coinImage,
+						width: 33,
+						height: 33,
+						x: monsters[i].x,
+						y: monsters[i].y,
+						show: true
+
+					});
+					if(coin[i].show)
+						ctx.drawImage(coin[i].image,coin[i].x,coin[i].y);
+					var hit = overlap(hero, monsters[i]);
+					if(monsters[i].show){
+						if(hit === true) {
+							hero.x = hero.x - 33;
+							hero.y = hero.y - 33;
+							hero.blood = hero.blood-monsters[i].hurt;
+							monsters[i].blood = monsters[i].blood-hero.hurt;
+							monsters[i].show = true;
+							coin[i].show = false;
+						}
+						if(monsters[i].blood < 0) {
+							monsters[i].show = false;
+							coins++;
+						}
+					}
+					if(hero.blood <= 0) {
+						alert("LOOSE, click to restart");
+						location.reload(true); //http://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_loc_reload
+					}
+					if(coins === 5) {
+						alert("WIN, click to restart");
+						location.reload(true);
+					}
+				}
+				window.setTimeout(main);
+			}
+
+			function overlap(a, b) {
+				if(((a.y + a.height) < (b.y))||(a.y > (b.y + b.height))||
+					((a.x + a.width) < b.x)||(a.x > (b.x + b.width)))
+					return false;
+				else
+					return true;
+			}
+
+			function press(e)
+			{
+				var button = e.keyCode;
+
+				if((button == 73)||(button ==87))//move up
+				{
+					if (hero.y>0)
+						hero.y = hero.y - 10;
+				}
+				if((button == 75)||(button == 83))//move down
+				{
+					if (hero.y <= 445)
+						hero.y = hero.y + 10;
+				}
+				if((button == 74)||(button == 65))//move left
+				{
+					if (hero.x > 0)
+						hero.x = hero.x - 10;
+				}
+				if((button == 76)||(button ==68))//move right
+				{
+					if (hero.x <= 440)
+						hero.x = hero.x + 10;
+				}
+			}
+		</script>
+	</body>
+</html>
